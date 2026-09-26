@@ -108,6 +108,7 @@ set(lisbslic3r_sources
     Config.hpp
     ContourZ.cpp
     CustomGCode.cpp
+    NonPlanarIroning.cpp
     CustomGCode.hpp
     CutUtils.cpp
     CutUtils.hpp

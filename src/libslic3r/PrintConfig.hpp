@@ -1351,6 +1351,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, filament_ironing_spacing))
     ((ConfigOptionFloatsNullable, filament_ironing_inset))
     ((ConfigOptionFloatsNullable, filament_ironing_speed))
+    // Non-planar ironing
+    ((ConfigOptionBool, ironing_non_planar_enabled))
+    ((ConfigOptionFloat, ironing_max_z_deviation))
+    ((ConfigOptionFloat, ironing_max_z_change_per_segment))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
     ((ConfigOptionBool, unsupported_wall_last))

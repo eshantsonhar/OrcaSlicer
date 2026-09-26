@@ -207,6 +207,9 @@ public:
                                                     bool spiral_mode,
                                                     bool is_topmost_layer);
     void                    make_contour_z(const sla::IndexedMesh &mesh);
+    void                    make_non_planar_ironing(const sla::IndexedMesh &mesh);
+
+private:
 
     void                    export_region_slices_to_svg(const char *path) const;
     void                    export_region_fill_surfaces_to_svg(const char *path) const;
@@ -256,8 +259,6 @@ public:
             }
         return idx;
     }
-
-    size_t get_extruder_id(unsigned int filament_id) const;
 
 protected:
     friend class PrintObject;

@@ -838,6 +838,56 @@ void PrintObject::ironing()
         );
         m_print->throw_if_canceled();
         BOOST_LOG_TRIVIAL(debug) << "Ironing in parallel - end";
+
+        // Apply non-planar ironing if enabled
+        // This must happen after ironing paths are generated but before G-code export
+        // Check if any region has non-planar ironing enabled
+        bool need_non_planar_ironing = false;
+        size_t num_regions = this->num_printing_regions();
+        for (size_t region_id = 0; region_id < num_regions; region_id++) {
+            if (this->printing_region(region_id).config().ironing_non_planar_enabled) {
+                need_non_planar_ironing = true;
+                break;
+            }
+        }
+
+        if (need_non_planar_ironing) {
+            // Get the indexed mesh for surface queries (same approach as ZAA)
+            TriangleMesh mesh = this->m_model_object->raw_mesh();
+            if (m_model_object->instances.size() != 1) {
+                throw RuntimeError("NonPlanarIroning: unexpected number of instances");
+            }
+
+            ModelInstance *inst = m_model_object->instances.front();
+            Point center_offset = this->center_offset();
+            Geometry::Transformation trans = inst->get_transformation();
+
+            double z = this->m_model_object->min_z();
+            trans.set_offset(Vec3d(-unscale<double>(center_offset.x()), -unscale<double>(center_offset.y()), 0));
+            mesh.transform(trans.get_matrix());
+
+            sla::IndexedMesh imesh(mesh);
+
+            std::mutex mtx;
+            size_t completed = 0;
+            tbb::parallel_for(
+                tbb::blocked_range<size_t>(0, m_layers.size()),
+                [&, this](const tbb::blocked_range<size_t>& range) {
+                    for (size_t layer_idx = range.begin(); layer_idx < range.end(); layer_idx++) {
+                        m_print->throw_if_canceled();
+                        m_layers[layer_idx]->make_non_planar_ironing(imesh);
+
+                        std::scoped_lock lock(mtx);
+                        completed++;
+                        std::string msg = (boost::format("Non-planar ironing layer %d/%d (%d%%)") % (completed) % m_layers.size() % int(double(completed) / m_layers.size() * 100)).str();
+                        m_print->set_status(40, msg);
+                    }
+                }
+            );
+            m_print->throw_if_canceled();
+            BOOST_LOG_TRIVIAL(debug) << "Non-planar ironing in parallel - end";
+        }
+
         this->set_done(posIroning);
     }
 }

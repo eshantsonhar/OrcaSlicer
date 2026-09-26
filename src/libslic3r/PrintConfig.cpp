@@ -4860,6 +4860,35 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(20));
 
+    def = this->add("ironing_non_planar_enabled", coBool);
+    def->label = L("Non-planar ironing");
+    def->category = L("Experimental");
+    def->tooltip = L("Enable non-planar ironing to reduce layer stair-stepping by allowing the ironing toolpath to follow surface geometry. "
+                     "This is experimental and may cause toolhead collisions. Start with conservative Z deviation values and test on simple geometries.");
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("ironing_max_z_deviation", coFloat);
+    def->label = L("Non-planar ironing max Z deviation");
+    def->category = L("Experimental");
+    def->tooltip = L("Maximum deviation from the nominal ironing surface in millimeters. This is a software constraint, not a guarantee of physical safety. "
+                     "The actual safe Z envelope depends on your printer/toolhead geometry. Start with conservative values (0.1-0.2mm) and increase after validation.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 1;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.15));
+
+    def = this->add("ironing_max_z_change_per_segment", coFloat);
+    def->label = L("Non-planar ironing max Z change");
+    def->category = L("Experimental");
+    def->tooltip = L("Maximum Z change between consecutive ironing path points in millimeters. Prevents abrupt Z jumps. Smaller values produce smoother but more segmented paths.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 0.5;
+    def->mode = comExpert;
+    def->set_default_value(new ConfigOptionFloat(0.05));
+
     def           = this->add("ironing_angle", coFloat);
     def->label    = L("Ironing angle offset");
     def->category = L("Quality");
