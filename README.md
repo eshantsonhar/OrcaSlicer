@@ -1,259 +1,246 @@
-<div align="center">
+# Non-Planar Ironing for OrcaSlicer
 
-<picture>
-  <img alt="OrcaSlicer logo" src="resources/images/OrcaSlicer.png" width="15%" height="15%">
-</picture>
+This project investigates a new approach to achieving smoother FDM printed surfaces by combining non-planar ironing with conventional layer-based printing.
 
-<a href="https://trendshift.io/repositories/15552" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15552" alt="OrcaSlicer%2FOrcaSlicer | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+## Project Goal
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/OrcaSlicer/OrcaSlicer)](https://github.com/OrcaSlicer/OrcaSlicer/stargazers) [![Build all](https://github.com/OrcaSlicer/OrcaSlicer/actions/workflows/build_all.yml/badge.svg?branch=main)](https://github.com/OrcaSlicer/OrcaSlicer/actions/workflows/build_all.yml)
+Traditional FDM printing constructs objects as stacked planar layers, which creates visible layer stair-stepping and surface seams. This project explores whether controlled non-planar ironing can reduce these artifacts while remaining within the mechanical constraints of conventional FDM printers.
 
-OrcaSlicer: an open source Next-Gen Slicing Software for Precision 3D Prints.  
-Optimize your prints with ultra-fast slicing, intelligent support generation, and seamless printer compatibility—engineered for perfection.
+The research focuses on exploiting the small region around the nozzle that is available for controlled Z movement without causing the rest of the toolhead to collide with the printed object.
 
-# Official links and community
+## Motivation
 
-#### Official Website:
+The project is motivated by several observations:
 
-<a href="https://www.orcaslicer.com/" style="font-size:2em;">OrcaSlicer.com</a>
+- Conventional FDM is technically three-dimensional, but most extrusion occurs on planar layer surfaces
+- Layer stair-stepping remains visible even with optimal layer heights
+- True arbitrary non-planar printing requires specialized hardware (robotic arms, multi-axis systems)
+- Z-axis anti-aliasing (ZAA) has demonstrated significant reduction in stair-stepping
+- The question remains: can non-planar ironing further smooth surfaces beyond what ZAA achieves?
 
-#### Github Repository:
+The target hardware is conventional FDM printers such as the Bambu Lab A1, not specialized multi-axis systems.
 
-<a href="https://github.com/OrcaSlicer/OrcaSlicer"><img src="https://img.shields.io/badge/OrcaSlicer-181717?style=flat&logo=github&logoColor=white" width="200" alt="GitHub Logo"/> </a>
+## Inspiration
 
-#### Follow us:
+This project was inspired by:
 
-<a href="https://twitter.com/real_OrcaSlicer"><img src="https://img.shields.io/badge/real__OrcaSlicer-000000?style=flat&logo=x&logoColor=white" width="200" alt="X Logo"/> </a>  
-<a href="https://www.youtube.com/@OfficialOrcaSlicer"><img src="https://img.shields.io/badge/OfficialOrcaSlicer-FF0000?style=flat&logo=youtube&logoColor=white" width="200" alt="YouTube Logo"/> </a>
+- The observation that conventional FDM mostly constructs objects as stacked planar layers
+- The mechanical difficulty of true arbitrary non-planar printing on standard hardware
+- The discovery of Z-axis anti-aliasing in BambuStudio-ZAA
+- The significant reduction in stair-stepping achievable with ZAA
+- The question of whether non-planar ironing could further smooth the surface
 
-#### Join our Discord community:
+### Reference Implementation
 
-<a href="https://discord.gg/P4VE9UY9gJ"><img src="https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=discord&logoColor=fff" width="200" alt="discord logo"/> </a>
+This project references the Z-axis anti-aliasing work in [BambuStudio-ZAA](https://github.com/adob/BambuStudio-ZAA) by adob. The ZAA implementation demonstrates that variable-Z toolpaths can be generated and executed on conventional FDM hardware.
 
-<table border="2" style="border-color: #ffa500; background-color:rgb(232, 220, 180); color: #856404;">
-<tr>
-<td>
-<strong>⚠️ CAUTION:</strong><br>
-Several clickbait and malicious websites, such as <b>orca-slicer[.]com</b> and <b>orcaslicer[.]net</b>, are pretending to be the official OrcaSlicer site. These sites may redirect you to dangerous downloads or contain misleading information.<br>
-<b>Our only official website is <a href="https://www.orcaslicer.com/">www.orcaslicer.com</a>.</b><br><br>
-If you come across any of these in search results, please <b>report them</b> as unsafe or phishing to help keep the community secure with:<br>
- - <a href="https://safebrowsing.google.com/safebrowsing/report_phish/">Google Safe Browsing</a><br>
- - <a href="https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site">Microsoft Security Intelligence</a><br>
- - <a href="https://ipthreat.net/tools/reportphishing">IPThreat</a>
-</td>
-</tr>
-</table>
+## Core Concept
 
-</div>
+The proposed concept is to allow the ironing toolpath to move through a small controlled Z envelope around layer transitions, rather than forcing the ironing pass to remain on one perfectly flat plane.
 
-# Main features
+### Inter-Layer Ironing
 
-- **[Advanced Calibration Tools](https://www.orcaslicer.com/wiki/calibration_guide)**  
-  Comprehensive suite: temperature towers, flow rate, retraction & more for optimal performance.
-- **[Precise Wall](https://www.orcaslicer.com/wiki/quality_settings_precision#precise-wall) and [Seam Control](https://www.orcaslicer.com/wiki/quality_settings_seam)**  
-  Adjust outer wall spacing and apply scarf seams to enhance print accuracy.
-- **[Sandwich Mode](https://www.orcaslicer.com/wiki/quality_settings_wall_and_surfaces#innerouterinner) and [Polyholes](https://www.orcaslicer.com/wiki/quality_settings_precision#polyholes) Support**  
-  Use varied infill [patterns](https://www.orcaslicer.com/wiki/strength_settings_patterns) and accurate hole shapes for improved clarity.
-- **[Overhang](https://www.orcaslicer.com/wiki/quality_settings_overhangs) and [Support Optimization](https://www.orcaslicer.com/wiki#support-settings)**  
-  Modify geometry for printable overhangs with precise support placement.
-- **[Granular Controls and Customization](https://www.orcaslicer.com/wiki#process-settings)**  
-  Fine-tune print speed, layer height, pressure, and temperature with precision.
-- **Network Printer Support**  
-  Seamless integration with Klipper, PrusaLink, and OctoPrint for remote control.
-- **[Mouse Ear Brims](https://www.orcaslicer.com/wiki/others_settings_brim) & [Adaptive Bed Mesh](https://www.orcaslicer.com/wiki/printer_basic_information_adaptive_bed_mesh)**  
-  Automatic brims and adaptive mesh calibration ensure consistent adhesion.
-- **User-Friendly Interface**  
-  Intuitive drag-and-drop design with pre-made profiles for popular printers.
-- **[Open-Source](https://github.com/OrcaSlicer/OrcaSlicer) & [Community Driven](https://discord.gg/P4VE9UY9gJ)**  
-  Regular updates fueled by continuous community contributions.
-- **Wide Printer Compatibility**  
-  Supports a broad range of printers: Bambu Lab, Prusa, Creality, Voron, and more.
-- Additional features can be found in the [change notes](https://github.com/OrcaSlicer/OrcaSlicer/releases/).
+Instead of treating each layer boundary as an abrupt surface:
 
-# Wiki
-
-The [wiki](https://www.orcaslicer.com/wiki) aims to provide a detailed explanation of the slicer settings, including how to maximize their use and how to calibrate and set up your printer.
-
-- **[Access the wiki here](https://www.orcaslicer.com/wiki)**
-- **[Contribute to the wiki](https://www.orcaslicer.com/wiki/how_to_wiki)**
-
-# Download
-
-## Stable Release
-
-📥 **[Download the Latest Stable Release](https://github.com/OrcaSlicer/OrcaSlicer/releases/latest)**  
-Visit our GitHub Releases page for the latest stable version of OrcaSlicer, recommended for most users.
-
-## Nightly Builds
-
-🌙 **[Download the Latest Nightly Build](https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/nightly-builds)**  
-Explore the latest developments in OrcaSlicer with our nightly builds. Feedback on these versions is highly appreciated.
-
-### Belt Printer Builds
-
-The [nightly release](https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/nightly-builds) ships **two parallel builds**: the standard build and a belt-printer build. Both are attached to the same release — tell them apart by the filename suffix:
-
-- **Standard** — no suffix (e.g. `OrcaSlicer_Windows_Installer_x64_nightly.exe`)
-- **Belt** — `_belt` suffix (e.g. `OrcaSlicer_Windows_Installer_x64_nightly_belt.exe`)
-
-The `_belt` builds add **experimental support for belt / conveyor (infinite-Z) printers**, where the model is sliced against a tilted belt surface instead of a flat horizontal bed. They include ready-to-use belt printer profiles, the full belt slicing pipeline (mesh rotation and G-code transforms), belt-aware support generation, and a tilted-bed preview.
-
-> ⚠️ Belt printer support is under active development and is **not yet merged into `main`** — it currently ships only in these parallel `_belt` builds, produced from the [`belt-printer`](https://github.com/OrcaSlicer/OrcaSlicer/tree/belt-printer) branch. See tracking PR [#14394](https://github.com/OrcaSlicer/OrcaSlicer/pull/14394) and the original documentation in [#12998](https://github.com/OrcaSlicer/OrcaSlicer/pull/12998).
-
-# How to install
-
-## Windows
-
-Download the **Windows Installer exe** for your preferred version from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases). Both `x64` and `arm64` installers are published — pick the one matching your CPU.
-
-- *For convenience there is also a portable build available.*
-    <details>
-    <summary>Troubleshooting</summary>
-
-  - *If you have troubles to run the build, you might need to install following runtimes:*
-  - [MicrosoftEdgeWebView2RuntimeInstallerX64](https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v1.0.10-sf2/MicrosoftEdgeWebView2RuntimeInstallerX64.exe)
-    - [Details of this runtime](https://aka.ms/webview2)
-    - [Alternative Download Link Hosted by Microsoft](https://go.microsoft.com/fwlink/p/?LinkId=2124703)
-  - [vcredist2019_x64](https://github.com/OrcaSlicer/OrcaSlicer/releases/download/v1.0.10-sf2/vcredist2019_x64.exe)
-    - [Alternative Download Link Hosted by Microsoft](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-    - This file may already be available on your computer if you've installed visual studio.  Check the following location: `%VCINSTALLDIR%Redist\MSVC\v142`
-    </details>
-
-### Microsoft Store
-
-Install from the [Microsoft Store](https://apps.microsoft.com/detail/9mv6gl23xm59) when you prefer a Store-signed package (helps on Windows 11 Smart App Control).
-
-### Windows Package Manager
-
-```shell
-winget install --id=SoftFever.OrcaSlicer -e
+```
+Layer N       Z = 0.20
+-----------------------
+transition
+-----------------------
+Layer N+1     Z = 0.40
 ```
 
-## Mac
+The experimental ironing path may use a controlled Z profile through part of that transition region.
 
-1. Download the universal DMG, which runs on both Apple Silicon and Intel Macs.
-2. Drag OrcaSlicer.app to Application folder.
-3. *If you want to run a build from a PR, you also need to follow the instructions below:*
+### Z Envelope
 
-    <details>
-    <summary>Quarantine</summary>
+For typical 0.2 mm layer heights, the experimental concept investigates whether a controlled ironing envelope on the order of approximately 0.3 mm can be used while remaining within the physical clearance available around the nozzle.
 
-    - Option 1 (You only need to do this once. After that the app can be opened normally.):
-      - Step 1: Hold _cmd_ and right click the app, from the context menu choose **Open**.
-      - Step 2: A warning window will pop up, click _Open_
+**Important**: These values are not universally safe. The actual allowable Z envelope depends on:
+- Nozzle geometry and protrusion
+- Heater block geometry
+- Fan shroud design
+- Toolhead body dimensions
+- Printed geometry and local surface slope
+- Printer kinematics
+- Printer-specific collision envelope
 
-    - Option 2:
-      Execute this command in terminal:
+Software constraints cannot guarantee physical collision safety without printer-specific geometric analysis or physical testing.
 
-      ```shell
-      xattr -dr com.apple.quarantine /Applications/OrcaSlicer.app
-      ```
+## Implementation Status
 
-    - Option 3:
-        - Step 1: open the app, a warning window will pop up  
-            ![mac_cant_open](./SoftFever_doc/mac_cant_open.png)
-        - Step 2: in `System Settings` -> `Privacy & Security`, click `Open Anyway`:  
-            ![mac_security_setting](./SoftFever_doc/mac_security_setting.png)
-    </details>
+### Completed
+- Architecture analysis of OrcaSlicer ironing system
+- Analysis of existing ZAA implementation in OrcaSlicer
+- BambuStudio-ZAA license compatibility analysis
+- Technical design documentation
 
-### Homebrew Cask
+### In Progress
+- Non-planar ironing path representation
+- Surface-aware Z interpolation
+- Safety constraint implementation
 
-```shell
-brew install --cask orcaslicer
+### Planned
+- User-facing configuration
+- G-code verification
+- Preview system updates
+- Adaptive flow investigation
+- Automated testing
+- Physical validation preparation
+
+## Technical Approach
+
+### Architecture
+
+The implementation leverages OrcaSlicer's existing infrastructure:
+
+- **Variable-Z Support**: OrcaSlicer already supports variable-Z extrusion through the `z_contoured` flag
+- **Mesh Querying**: Existing ZAA implementation uses mesh raycasting for surface height
+- **G-code Emission**: The G-code generator correctly handles variable-Z coordinates
+- **Configuration System**: Well-established settings architecture for new parameters
+
+### Integration Point
+
+Non-planar ironing integrates into the existing ironing pipeline:
+
+```
+Normal Ironing
+    |
+    +--> Planar Ironing (existing behavior)
+    |
+    +--> Non-Planar Ironing (new)
+             |
+             +--> Surface sampling (mesh query)
+             +--> Z interpolation (smooth transitions)
+             +--> Constraint application (safety limits)
+             +--> Variable-Z path generation
+             +--> G-code emission (existing infrastructure)
 ```
 
-The [Homebrew cask](https://formulae.brew.sh/cask/orcaslicer) installs the official macOS DMG from [GitHub Releases](https://github.com/OrcaSlicer/OrcaSlicer/releases).
+### Safety Constraints
 
-## Linux
+The implementation includes software-level constraints:
 
-### Flathub (Recommended)
+- **Maximum Z Deviation**: Configurable limit on absolute Z deviation from nominal layer height
+- **Maximum Segment Z Change**: Prevents abrupt Z jumps between adjacent path segments
+- **Minimum Z**: Prevents negative or unsafe Z coordinates
+- **Boundary Handling**: Graceful degradation at edges, holes, and invalid geometry
+- **Invalid Geometry**: Fallback to planar behavior when surface information is unavailable
 
-OrcaSlicer is available through FlatHub:
+## Limitations
 
-<a href='https://flathub.org/apps/com.orcaslicer.OrcaSlicer'><img width='240' alt='Download on Flathub' src='https://dl.flathub.org/assets/badges/flathub-badge-en.png'/></a>
+### Physical Constraints
 
-Install from the command line:
+- Z deviation is not universally safe - depends on printer/toolhead geometry
+- Typical clearance around nozzle is limited
+- Toolhead body, fan shroud, heater block can collide with printed part
+- Surface slope affects required clearance
+- Layer height affects available Z envelope
 
-```shell
-flatpak install flathub com.orcaslicer.OrcaSlicer
-flatpak run com.orcaslicer.OrcaSlicer
+### Software Constraints
+
+- Cannot guarantee physical collision safety through software alone
+- Requires printer-specific validation for safe Z deviation values
+- Mesh-based surface sampling assumes accurate mesh representation
+- Complex geometries may have unreliable surface information
+
+### Validation Status
+
+**Software Verified**: The implementation can be verified to:
+- Generate variable-Z ironing paths
+- Respect configured Z constraints
+- Emit correct G-code with variable Z
+- Handle edge cases gracefully
+
+**Physically Unvalidated**: Physical safety requires:
+- Printer-specific geometric analysis
+- Experimental testing with conservative Z values
+- Visual inspection for toolhead collisions
+- Measurement of actual surface quality improvement
+
+## Development
+
+This project is based on [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer), a fork of PrusaSlicer with additional features and improvements.
+
+### Reference Projects
+
+- **Upstream**: [OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer)
+- **ZAA Reference**: [BambuStudio-ZAA](https://github.com/adob/BambuStudio-ZAA) by adob
+
+### Repository Structure
+
+```
+OrcaSlicer/
+├── README.md                      # This file
+├── docs/
+│   └── non_planar_ironing_design.md  # Technical design document
+├── src/
+│   ├── libslic3r/
+│   │   ├── Fill/Fill.cpp          # Ironing path generation
+│   │   ├── ContourZ.cpp           # Existing ZAA implementation
+│   │   ├── GCode.cpp              # G-code generation
+│   │   └── PrintConfig.hpp        # Configuration definitions
+│   └── slic3r/GUI/                # User interface
+└── resources/profiles/            # Printer profiles
 ```
 
-It can also be installed through graphical software managers (KDE Discover, GNOME Software, etc.) when Flathub is enabled. Search for **OrcaSlicer** in your software center.
+## Building
 
-### AppImage
+See the OrcaSlicer build documentation for platform-specific build instructions. This project follows the same build process as upstream OrcaSlicer.
 
-AppImages are published for both **x86_64** and **aarch64** (ARM64). Pick the file matching your CPU — the ARM64 build has `aarch64` in its name (e.g. `OrcaSlicer_Linux_AppImage_Ubuntu2404_aarch64_*.AppImage`).
+## Usage
 
- 1. Download App image from the [releases page](https://github.com/OrcaSlicer/OrcaSlicer/releases).
- 2. Double click the downloaded file to run it.
+When implemented, non-planar ironing will be configurable through OrcaSlicer's standard settings interface. The feature will be disabled by default to preserve existing behavior.
 
- 3. If you run into trouble executing it, try this command in the terminal:
-    `chmod +x /path_to_appimage/OrcaSlicer_Linux.AppImage`
+### Configuration Settings (Planned)
 
-# How to Compile
+- **Non-Planar Ironing Enable**: Master switch for the feature
+- **Maximum Z Deviation**: Safety limit for Z deviation from nominal layer height
+- **Maximum Z Change per Segment**: Limit on Z change between adjacent path points
+- **Sampling Resolution**: Resolution for surface height sampling
 
-All updated build instructions for Windows, macOS, and Linux are now available on the official [OrcaSlicer Wiki - How to build](https://www.orcaslicer.com/wiki/how_to_build) page.
+### Recommended Initial Values
 
-Please refer to the wiki to ensure you're following the latest and most accurate steps for your platform.
+For initial testing with conservative safety margins:
+- Maximum Z Deviation: 0.1-0.2 mm
+- Maximum Z Change per Segment: 0.05 mm
+- Start with simple geometries (flat surfaces, gentle slopes)
 
-# Klipper Note
+## Safety Warnings
 
-If you're running Klipper, it's recommended to add the following configuration to your `printer.cfg` file.
+**Important Safety Information**:
 
-```gcode
-# Enable object exclusion
-[exclude_object]
+1. **Experimental Feature**: This is experimental software. Generated G-code should be inspected before attempting prints.
 
-# Enable arcs support
-[gcode_arcs]
-resolution: 0.1
-```
+2. **Collision Risk**: Software constraints cannot guarantee physical collision safety. The actual safe Z envelope depends on your specific printer and toolhead geometry.
 
-# Supports
+3. **Conservative Testing**: Start with very conservative Z deviation values and small test models. Gradually increase after validating safety.
 
-**OrcaSlicer** is an open-source project, and we're deeply grateful to all our sponsors and backers.  
-Their generous support helps fund filaments and other essential 3D printing materials for the project.  
-Thank you! :)
+4. **Visual Inspection**: Monitor first prints carefully for toolhead collisions, especially near complex geometries.
 
-## Sponsors
+5. **Printer-Specific**: Safe values for one printer may not be safe for another due to different toolhead designs.
 
-<table>
-<tr>
-<td>
-<a href="https://qidi3d.com/" style="display:inline-block; border-radius:8px; background:#fff;">
-  <img src="SoftFever_doc\sponsor_logos\QIDI.png" alt="QIDI" width="100" height="100">
-</a>
-</td>
-<td>
-<a href="https://bigtree-tech.com/" style="display:inline-block; border-radius:8px; background:#222;">
-    <img src="SoftFever_doc\sponsor_logos\BigTreeTech.png" alt="BIGTREE TECH" width="100" height="100">
-</a>
-</td>
-</tr>
-</table>
+6. **No Guarantee**: The authors provide no guarantee of physical safety or print quality.
 
-## Backers:
+## Contributing
 
-**Ko-fi supporters** ☕: [Backers list](https://github.com/user-attachments/files/16147016/Supporters_638561417699952499.csv)
+This is a research project. Contributions should focus on:
+- Improving the safety and robustness of non-planar path generation
+- Adding automated tests for edge cases
+- Improving documentation
+- Physical validation results and findings
 
-## Support the project
+## License
 
-<a href="https://github.com/sponsors/SoftFever"><img src="https://img.shields.io/badge/GitHub%20Sponsors-30363D?style=flat&logo=GitHub-Sponsors&logoColor=EA4AAA" height="50"></a>  
-<a href="https://ko-fi.com/G2G5IP3CP"><img src="https://img.shields.io/badge/Support_me_on_Ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white" height="50"></a>  
-<a href="https://paypal.me/softfever3d"><img src="https://img.shields.io/badge/PayPal-003087?style=flat&logo=paypal&logoColor=fff" height="50"></a>
+This project is based on OrcaSlicer, which is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). The non-planar ironing implementation follows the same license.
 
-## Some Background
+### Reference Project Licenses
 
-Open-source slicing has always been built on a tradition of collaboration and attribution. [Slic3r](https://github.com/Slic3r/Slic3r), created by Alessandro Ranellucci and the RepRap community, laid the foundation. [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research built on Slic3r and acknowledged that heritage. [Bambu Studio](https://github.com/bambulab/BambuStudio) in turn forked from PrusaSlicer, and [SuperSlicer](https://github.com/supermerill/SuperSlicer) by @supermerill extended PrusaSlicer with community-driven enhancements. Each project carried the work of its predecessors forward, crediting those who came before.
+- **OrcaSlicer**: AGPL-3.0
+- **BambuStudio-ZAA**: AGPL-3.0 (compatible)
 
-OrcaSlicer began in that same spirit, drawing from BambuStudio, PrusaSlicer, and ideas inspired by CuraSlicer and SuperSlicer. But it has since grown far beyond its origins. Through relentless innovation — introducing advanced calibration tools, precise wall and seam control, tree supports, adaptive slicing, and hundreds of other features — OrcaSlicer has become the most widely used and actively developed open-source slicer in the 3D printing community. Many of its innovations have been adopted by other slicers, making it a driving force for the entire industry.
+## Acknowledgments
 
-The OrcaSlicer logo was designed by community member [Justin Levine](https://github.com/jal-co).
-
-# License
-
-- **OrcaSlicer** is licensed under the GNU Affero General Public License, version 3.
-- The **GNU Affero General Public License**, version 3 ensures that if you use any part of this software in any way (even behind a web server), your software must be released under the same license.
-- OrcaSlicer includes a **pressure advance calibration pattern test** adapted from Andrew Ellis' generator, which is licensed under GNU General Public License, version 3. Ellis' generator is itself adapted from a generator developed by Sineos for Marlin, which is licensed under GNU General Public License, version 3.
-- The **Bambu networking plugin** is based on non-free libraries from BambuLab. It is optional to the OrcaSlicer and provides extended functionalities for Bambulab printer users.
+- OrcaSlicer development team for the excellent slicer foundation
+- adob for the BambuStudio-ZAA reference implementation
+- The broader FDM printing community for continued innovation
